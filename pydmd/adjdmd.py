@@ -3,8 +3,10 @@ Derived module from dmdbase.py for classic dmd.
 """
 from .dmdbase import DMDBase
 import scipy as sp
+import numpy as np
 
-class DMD(DMDBase):
+
+class ADJDMD(DMDBase):
     """
     Dynamic Mode Decomposition
 
@@ -22,6 +24,7 @@ class DMD(DMDBase):
     :param bool opt: flag to compute optimal amplitudes. See :class:`DMDBase`.
         Default is False.
     """
+
     def __init__(self, alpha, svd_rank=0, tlsq_rank=0, exact=False, opt=False):
         self.svd_rank = svd_rank
         self.tlsq_rank = tlsq_rank
@@ -29,7 +32,7 @@ class DMD(DMDBase):
         self.opt = opt
         self.original_time = None
         self.dmd_time = None
-		self.alpha = alpha
+        self.alpha = alpha
         self._eigs = None
         self._Atilde = None
         self._modes = None  # Phi
@@ -62,38 +65,33 @@ class DMD(DMDBase):
         if exact:
             eigenvectors = (
                 (Y.dot(V) * np.reciprocal(s)).dot(lowrank_eigenvectors_l))
-			raise('currently adjoint DMD use only projected modes')
+            raise ('currently adjoint DMD use only projected modes')
 
         else:
             eigenvectors = U.dot(lowrank_eigenvectors_l)
-			eigenvectors_adj = U.dot(lowrank_eigenvectors_r.conj().T)
-		
+            eigenvectors_adj = U.dot(lowrank_eigenvectors_r.conj().T)
+
         # The eigenvalues are the same
         eigenvalues = lowrank_eigenvalues
 
-        return eigenvalues, eigenvectors,eigenvectors_adj
-    
+        return eigenvalues, eigenvectors, eigenvectors_adj
 
-	@staticmethod  
-	def mode_projection_coefficients(self):
-		pass
-	@staticmethod  
-	def projected_dynamics(self,X,t, alpha, L):
-		pass
+    @staticmethod
+    def mode_projection_coefficients(self):
+        pass
 
+    @staticmethod
+    def projected_dynamics(self, X, t, alpha, L):
+        pass
 
+        def fit(self, X):
 
+            """
+            Compute the Dynamic Modes Decomposition to the input data.
 
-
-
-
-	def fit(self, X):
-        """
-        Compute the Dynamic Modes Decomposition to the input data.
-
-        :param X: the input snapshots.
-        :type X: numpy.ndarray or iterable
-        """
+            :param X: the input snapshots.
+            :type X: numpy.ndarray or iterable
+            """
         self._snapshots, self._snapshots_shape = self._col_major_2darray(X)
 
         n_samples = self._snapshots.shape[1]
@@ -108,26 +106,21 @@ class DMD(DMDBase):
 
         self._eigs, self._modes, self._adjmodes = self._eig_from_lowrank_op(
             self._Atilde, Y, U, s, V, self.exact)
-		
-		L = mode_projection_coefficients() # r by r
-		a = projected_dynamics(self,X,t, alpha, L) # a is a matrix r by t 
-        
-		# Default timesteps
+
+        L = mode_projection_coefficients()  # r by r
+        a = projected_dynamics(self, X, t, alpha, L)  # a is a matrix r by t
+
+        # Default timesteps
         self.original_time = {'t0': 0, 'tend': n_samples - 1, 'dt': 1}
         self.dmd_time = {'t0': 0, 'tend': n_samples - 1, 'dt': 1}
-        
+
         self._b = self._compute_amplitudes(self._modes, self._snapshots,
                                            self._eigs, self.opt)
 
         return self
 
-
     @property
     def reconstructed_data(self):
-		L = mode_projection_coefficients() # r by r
-		a = projected_dynamics(self,self.X, t, alpha, L) # a is a matrix r by t 
-		return self.modes @ a
-
-
-
-
+        L = mode_projection_coefficients()  # r by r
+        a = projected_dynamics(self, self.X, t, alpha, L)  # a is a matrix r by t
+        return self.modes @ a
