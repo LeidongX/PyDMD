@@ -55,7 +55,7 @@ setup(name='pydmd',
 	  		'numpy',
 	  		'scipy',
 	  		'matplotlib',
-	  		'Sphinx==1.4',
+	  		'Sphinx',
 	  		'sphinx_rtd_theme'
 	  ],
 	  test_suite='nose.collector',
